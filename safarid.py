@@ -14,28 +14,97 @@
 #
 # Authentication and connection whitelisting should certainly be applied.
 
-try:
-	from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-except:
-	from http.server import HTTPServer, BaseHTTPRequestHandler
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+import base64
 
-import cgi
+# Allow connections only from the specific IP addresses given in this list.
+# Allow connections from any IP address if this list is empty.
+IP_WHITELIST = []
 
-class SafariServer(BaseHTTPRequestHandler):
+# Credentials for basic HTTP authentication
+AUTH_USERNAME = "foo"
+AUTH_PASSWORD = "bar"
 
-	def do_POST(self):
-	
-		content_length = int(self.headers['content-length'])
-		body = self.rfile.read(content_length)
-		print body
+# Server address configuration
+SERVER_NAME = "192.168.1.5"
+SERVER_PORT = 8081
+
+class rlictdRequestHandler(BaseHTTPRequestHandler):
+
+	#
+	# Return value:
+	#	True if client is authorized
+	#	False if client is not authorized
+	#
+	# Side effects:
+	#	Sends error response to client if and only if client is not authorized.
+	#
+	def authorized(self):
+
+		# restrict access to clients in the IP whitelist
+		if len(IP_WHITELIST) > 0 and self.client_address[0] not in IP_WHITELIST:
+			print "disallow %s" % (self.client_address[0])
+			self.respondWhitelistError()
+			return False
 		
+		# require authorization
+		if 'Authorization' not in self.headers:
+			print "authorization required"
+			self.respondAuthError()
+			return False
+		
+		# get authorization values
+		authtoken = self.headers['Authorization'].split(' ', 1)[1]
+		username, password = base64.b64decode(authtoken).split(':', 1)
+		
+		# require correct authentication
+		if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
+			print "authorization failed"
+			self.respondAuthError()
+			return False
+		
+		print "authorized as %s ok" % (username)
+		return True
+
+	def respondWhitelistError(self):
+		self.send_response(403)
+		self.send_header("Content-type", "text/plain")
+		self.end_headers()
+		self.wfile.write("Disallowed.".encode("utf-8"))	
+
+	def respondAuthError(self):
+		self.send_response(401)
+		self.send_header("WWW-Authenticate", 'Basic realm="rlictd"')
+		self.send_header("Content-type", "text/plain")
+		self.end_headers()
+		self.wfile.write("Login required".encode("utf-8"))
+	
+	def respondOK(self):
 		self.send_response(200)
 		self.send_header("Content-type", "text/plain")
 		self.end_headers()
 		self.wfile.write("OK".encode("utf-8"))
+	
+	def do_GET(self):
+		
+		if not self.authorized():
+			return
+		
+		self.respondOK()
 
-port = 8081
-server = HTTPServer(('192.168.1.5', port), SafariServer)
+	def do_POST(self):
+		
+		if not self.authorized():
+			return
+					
+		content_length = int(self.headers['content-length'])
+		body = self.rfile.read(content_length)
+		print body
+		
+		self.respondOK()
+		
+
+server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
 try:
 	server.serve_forever()
 except KeyboardInterrupt:
