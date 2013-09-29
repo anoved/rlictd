@@ -16,6 +16,7 @@
 
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import base64
+import ssl
 
 # Allow connections only from the specific IP addresses given in this list.
 # Allow connections from any IP address if this list is empty.
@@ -105,9 +106,10 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 
 server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
+server.socket = ssl.wrap_socket(server.socket, certfile='server.pem', server_side=True, ssl_version=ssl.PROTOCOL_TLSv1)
+
 try:
 	server.serve_forever()
 except KeyboardInterrupt:
 	pass
-
 

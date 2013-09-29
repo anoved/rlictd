@@ -35,9 +35,10 @@ var widget = widgets.Widget({
 		
 		// send the tab list to server
 		// authorize as b64encode("foo:bar")
+		// self-signed https certificate must be previously excepted
 		var tabstr = JSON.stringify(tablist);
 		var tabreq = Request({
-				url: "http://192.168.1.5:8081/",
+				url: "https://192.168.1.5:8081",
 				headers: {"Authorization": "Basic Zm9vOmJhcg=="},
 				content: tabstr,
 				onComplete: function(response) {
@@ -47,6 +48,5 @@ var widget = widgets.Widget({
 				}
 		});
 		tabreq.post();
-		
 	}
 });
