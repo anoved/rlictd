@@ -17,5 +17,11 @@
   	"name": "AUTH_PASSWORD",
   	"title": "rlictd password",
   	"value": "bar"
+  },
+  {
+  	"type": "string",
+  	"name": "SERVER_ADDRESS",
+  	"title": "rlictd address",
+  	"value": "https://192.168.1.5:8081"
   }]
 }

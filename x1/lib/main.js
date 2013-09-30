@@ -39,7 +39,7 @@ var widget = widgets.Widget({
 		// self-signed https certificate must be previously excepted
 		var tabstr = JSON.stringify(tablist);
 		var tabreq = Request({
-				url: "https://192.168.1.5:8081",
+				url: prefs.SERVER_ADDRESS,
 				headers: {
 					"Authorization": "Basic " + base64.encode(prefs.AUTH_USERNAME + ":" + prefs.AUTH_PASSWORD),
 					"Content-type": "application/json"
