@@ -17,6 +17,8 @@
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import base64
 import ssl
+import subprocess
+import json
 
 # Allow connections only from the specific IP addresses given in this list.
 # Allow connections from any IP address if this list is empty.
@@ -97,14 +99,22 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 		if not self.authorized():
 			return
-					
+
+		# should respond OK immediately or after processing?
+		self.respondOK()
+			
 		content_length = int(self.headers['content-length'])
 		body = self.rfile.read(content_length)
-		print body
+		tabs = json.loads(body)
 		
-		self.respondOK()
+		for tab in tabs:
+			addUrlToReadingList(tab['URL'])
 		
-
+ 
+def addUrlToReadingList(url):
+	cmd = ['/usr/bin/osascript', '-e', 'tell application "Safari" to add reading list item "%s"' % url]
+	subprocess.call(cmd)
+ 
 server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
 server.socket = ssl.wrap_socket(server.socket, certfile='server.pem', server_side=True, ssl_version=ssl.PROTOCOL_TLSv1)
 
