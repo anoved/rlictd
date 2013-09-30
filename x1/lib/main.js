@@ -17,6 +17,11 @@ var tabs = require("sdk/tabs");
 var data = require("sdk/self").data;
 var urls = require("sdk/url");
 var Request = require("sdk/request").Request;
+var base64 = require("sdk/base64");
+
+// Credentials for basic HTTP authentication
+var AUTH_USERNAME = "foo";
+var AUTH_PASSWORD = "bar";
 
 var widget = widgets.Widget({
 	id: "safarid-post",
@@ -34,13 +39,12 @@ var widget = widgets.Widget({
 		}
 		
 		// send the tab list to server
-		// authorize as b64encode("foo:bar")
 		// self-signed https certificate must be previously excepted
 		var tabstr = JSON.stringify(tablist);
 		var tabreq = Request({
 				url: "https://192.168.1.5:8081",
 				headers: {
-					"Authorization": "Basic Zm9vOmJhcg==",
+					"Authorization": "Basic " + base64.encode(AUTH_USERNAME + ":" + AUTH_PASSWORD),
 					"Content-type": "application/json"
 				},
 				content: tabstr,
