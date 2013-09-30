@@ -18,10 +18,7 @@ var data = require("sdk/self").data;
 var urls = require("sdk/url");
 var Request = require("sdk/request").Request;
 var base64 = require("sdk/base64");
-
-// Credentials for basic HTTP authentication
-var AUTH_USERNAME = "foo";
-var AUTH_PASSWORD = "bar";
+var prefs = require("sdk/simple-prefs").prefs;
 
 var widget = widgets.Widget({
 	id: "safarid-post",
@@ -44,7 +41,7 @@ var widget = widgets.Widget({
 		var tabreq = Request({
 				url: "https://192.168.1.5:8081",
 				headers: {
-					"Authorization": "Basic " + base64.encode(AUTH_USERNAME + ":" + AUTH_PASSWORD),
+					"Authorization": "Basic " + base64.encode(prefs.AUTH_USERNAME + ":" + prefs.AUTH_PASSWORD),
 					"Content-type": "application/json"
 				},
 				content: tabstr,
