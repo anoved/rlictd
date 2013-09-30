@@ -104,9 +104,14 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		tabs = json.loads(body)
 		
 		for tab in tabs:
-			addUrlToReadingList(tab['URL'])
+			addUrlToiCloudTabs(tab['URL'])
 		
- 
+
+def addUrlToiCloudTabs(url):
+	# -g means the application is not brought to the foreground
+	cmd = ['/usr/bin/open', '-a', 'Safari', '-g', url]
+	subprocess.call(cmd)
+
 def addUrlToReadingList(url):
 	cmd = ['/usr/bin/osascript', '-e', 'tell application "Safari" to add reading list item "%s"' % url]
 	subprocess.call(cmd)
