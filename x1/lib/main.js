@@ -18,31 +18,7 @@ var data = require("sdk/self").data;
 var urls = require("sdk/url");
 var Request = require("sdk/request").Request;
 var base64 = require("sdk/base64");
-var credentials = require("sdk/passwords");
-
-var AUTH_USERNAME = "foo";
-var AUTH_PASSWORD = "bar";
-var SERVER_URL = "https://192.168.1.5:8081";
-var SERVER_REALM = "rlictd";
-
-credentials.search({
-	url: SERVER_URL,
-	realm: SERVER_REALM,
-	onComplete: function onComplete(results) {
-		if (results.length == 0) {
-			credentials.store({
-				url: SERVER_URL,
-				realm: SERVER_REALM,
-				username: AUTH_USERNAME,
-				password: AUTH_PASSWORD
-			});
-		}
-		else {
-			AUTH_USERNAME = results[0].username;
-			AUTH_PASSWORD = results[0].password;
-		}
-	}
-});
+var prefs = require("sdk/simple-prefs").prefs;
 
 var widget = widgets.Widget({
 	id: "safarid-post",
@@ -63,9 +39,9 @@ var widget = widgets.Widget({
 		// self-signed https certificate must be previously excepted
 		var tabstr = JSON.stringify(tablist);
 		var tabreq = Request({
-				url: SERVER_URL,
+				url: "https://192.168.1.5:8081",
 				headers: {
-					"Authorization": "Basic " + base64.encode(AUTH_USERNAME + ":" + AUTH_PASSWORD),
+					"Authorization": "Basic " + base64.encode(prefs.AUTH_USERNAME + ":" + prefs.AUTH_PASSWORD),
 					"Content-type": "application/json"
 				},
 				content: tabstr,
