@@ -46,12 +46,12 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 
 		# restrict access to clients in the IP whitelist
 		if len(IP_WHITELIST) > 0 and self.client_address[0] not in IP_WHITELIST:
-			self.respondWhitelistError()
+			self.send_error(403, "Disallowed IP address")
 			return False
 		
 		# require authorization
 		if 'Authorization' not in self.headers:
-			self.respondAuthError()
+			self.send_error(401, "Authorization required")
 			return False
 		
 		# get authorization values
@@ -60,36 +60,17 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 		# require correct authentication
 		if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
-			self.respondAuthError()
+			self.send_error(401, "Authorization failed")
 			return False
 		
 		return True
-
-	def respondWhitelistError(self):
-		self.send_response(403)
-		self.send_header("Content-type", "text/plain")
-		self.end_headers()
-		self.wfile.write("Disallowed.".encode("utf-8"))	
-
-	def respondAuthError(self):
-		self.send_response(401)
-		self.send_header("WWW-Authenticate", 'Basic realm="rlictd"')
-		self.send_header("Content-type", "text/plain")
-		self.end_headers()
-		self.wfile.write("Login required".encode("utf-8"))
-	
-	def respondOK(self):
-		self.send_response(200)
-		self.send_header("Content-type", "text/plain")
-		self.end_headers()
-		self.wfile.write("OK".encode("utf-8"))
 	
 	def do_GET(self):
 		
 		if not self.authorized():
 			return
 		
-		self.respondOK()
+		self.send_response(200)
 
 	def do_POST(self):
 		
@@ -97,7 +78,7 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			return
 
 		# should respond OK immediately or after processing?
-		self.respondOK()
+		self.send_response(200)
 			
 		content_length = int(self.headers['content-length'])
 		body = self.rfile.read(content_length)
