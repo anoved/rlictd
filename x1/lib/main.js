@@ -39,7 +39,10 @@ var widget = widgets.Widget({
 		var tabstr = JSON.stringify(tablist);
 		var tabreq = Request({
 				url: "https://192.168.1.5:8081",
-				headers: {"Authorization": "Basic Zm9vOmJhcg=="},
+				headers: {
+					"Authorization": "Basic Zm9vOmJhcg==",
+					"Content-type": "application/json"
+				},
 				content: tabstr,
 				onComplete: function(response) {
 					if (response.status !== 200) {
