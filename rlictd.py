@@ -46,13 +46,11 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 
 		# restrict access to clients in the IP whitelist
 		if len(IP_WHITELIST) > 0 and self.client_address[0] not in IP_WHITELIST:
-			print "disallow %s" % (self.client_address[0])
 			self.respondWhitelistError()
 			return False
 		
 		# require authorization
 		if 'Authorization' not in self.headers:
-			print "authorization required"
 			self.respondAuthError()
 			return False
 		
@@ -62,11 +60,9 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 		# require correct authentication
 		if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
-			print "authorization failed"
 			self.respondAuthError()
 			return False
 		
-		print "authorized as %s ok" % (username)
 		return True
 
 	def respondWhitelistError(self):
