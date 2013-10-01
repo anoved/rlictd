@@ -76,18 +76,58 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 		if not self.authorized():
 			return
-
-		# should respond OK immediately or after processing?
-		self.send_response(200)
 			
 		content_length = int(self.headers['content-length'])
-		body = self.rfile.read(content_length)
-		tabs = json.loads(body)
+		data = json.loads(self.rfile.read(content_length))
 		
-		for tab in tabs:
-			addUrlToiCloudTabs(tab['URL'])
+		action = data.get('action', '')
+		type = data.get('type', '')
 		
-
+		if action == 'get':
+			
+			response = {'tabs': []}
+			
+			if type == 'rl':
+				# return reading list tabs in response
+				response['tabs'].append({'title': 'Reading List Link', 'url': 'http://example.com/'})
+				
+			elif type == 'ict':
+				# return icloud tabs in response
+				response['tabs'].append({'title': 'iCloud Tabs Link', 'url': 'http://example.org/'})
+				
+			elif type == 'all':
+				# return reading list and icloud tabs in response
+				response['tabs'].append({'title': 'Reading List Link', 'url': 'http://example.com/'})
+				response['tabs'].append({'title': 'iCloud Tabs Link', 'url': 'http://example.org/'})
+							
+			else:
+				self.send_error(400, 'Missing or invalid type for get action')
+				return
+			
+			# manually construct response
+			self.send_response(200)
+			self.send_header('Content-type', 'application/json')
+			self.end_headers()
+			json.dump(response, self.wfile)
+			# self.wfile.write(json.dumps(response))
+			
+		elif action == 'put':
+			if type == 'rl':
+				for tab in data.get('tabs', {}).get('rl', []):
+					addUrlToReadingList(tab['url'])
+			elif type == 'ict':
+				for tab in data.get('tabs', {}).get('ict', []):
+					addUrlToiCloudTabs(tab['url'])
+			else:
+				self.send_error(400, 'Missing or invalid type for put action')
+				return
+			
+			self.send_response(200)
+			
+		else:
+			self.send_error(400, 'Missing or invalid action')
+			return
+		
 def addUrlToiCloudTabs(url):
 	# -g means the application is not brought to the foreground
 	cmd = ['/usr/bin/open', '-a', 'Safari', '-g', url]
