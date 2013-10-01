@@ -36,7 +36,7 @@ require("sdk/widget").Widget({
 rlictd_panel.on("show", function() {
 	//rlictd_panel.port.emit("show"); to notify page script it is being shown
 	// when panel is display, request current list of icloud tabs from rlictd
-	sendData({'action': 'get', 'type': 'ict'}, load_links_handler);
+	sendData({'action': 'get', 'type': 'all'}, load_links_handler);
 });
 
 // handle response to get-ict request; expected to contain list of tabs
@@ -53,7 +53,12 @@ function load_links_handler(response) {
 	
 	// format as html list; insert in panel.html (using port to panel.js if need be)
 	var tabs = response.json['tabs'];
-	for each (link in tabs) {
+	console.log('iCloud Tabs:');
+	for each (link in tabs['ict']) {
+		console.log(link['url']);
+	}
+	console.log('Reading List:');
+	for each (link in tabs['rl']) {
 		console.log(link['url']);
 	}
 }

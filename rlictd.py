@@ -93,14 +93,14 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 				self.send_error(400, 'Missing or invalid type for get action')
 				return
 			
-			response = {'tabs': []}
+			response = {'tabs': {'ict': [], 'rl': []}}
 			if type == 'rl':
-				response['tabs'].extend(getUrls(ReadingListReader().read()))
+				response['tabs']['rl'] = getUrls(ReadingListReader().read())
 			elif type == 'ict':
-				response['tabs'].extend(getUrls(iCloudTabsReader().tabs))			
+				response['tabs']['ict'] = getUrls(iCloudTabsReader().tabs)
 			elif type == 'all':
-				response['tabs'].extend(getUrls(ReadingListReader().read()))
-				response['tabs'].extend(getUrls(iCloudTabsReader().tabs))
+				response['tabs']['rl'] = getUrls(ReadingListReader().read())
+				response['tabs']['ict'] = getUrls(iCloudTabsReader().tabs)
 			
 			self.send_response(200)
 			self.send_header('Content-type', 'application/json')
