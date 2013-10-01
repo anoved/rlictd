@@ -121,33 +121,33 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			self.send_header('Content-type', 'application/json')
 			self.end_headers()
 			json.dump(response, self.wfile)
-			# self.wfile.write(json.dumps(response))
 			
 		elif action == 'put':
-			if type == 'rl':
-				for tab in data.get('tabs', {}):
-					addUrlToReadingList(tab['url'])
-			elif type == 'ict':
-				for tab in data.get('tabs', {}):
-					addUrlToiCloudTabs(tab['url'])
-			else:
+			
+			# put type must be specified as rl (Reading List) or ict (iCloud Tabs)
+			if (type != 'rl') and (type != 'ict'):
 				self.send_error(400, 'Missing or invalid type for put action')
 				return
 			
+			for tab in data.get('tabs', {}):
+				putUrl(tab['url'], type)
+
 			self.send_response(200)
 			
 		else:
 			self.send_error(400, 'Missing or invalid action')
 			return
-		
-def addUrlToiCloudTabs(url):
-	# -g means the application is not brought to the foreground
-	cmd = ['/usr/bin/open', '-a', 'Safari', '-g', url]
-	subprocess.call(cmd)
 
-def addUrlToReadingList(url):
-	cmd = ['/usr/bin/osascript', '-e', 'tell application "Safari" to add reading list item "%s"' % url]
-	subprocess.call(cmd)
+# refer url to collection identified by type, which determines referral command
+# returns command exit status: 0 on success, nonzero otherwise
+def putUrl(url, type):
+	if type == 'rl':
+		cmd = ['/usr/bin/osascript', '-e', 'tell application "Safari" to add reading list item "%s"' % url]
+	elif type == 'ict':
+		cmd = ['/usr/bin/open', '-a', 'Safari', '-g', url]
+	else:
+		return 1
+	return subprocess.call(cmd)
  
 server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
 server.socket = ssl.wrap_socket(server.socket, certfile='server.pem', server_side=True, ssl_version=ssl.PROTOCOL_TLSv1)
