@@ -113,10 +113,10 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			
 		elif action == 'put':
 			if type == 'rl':
-				for tab in data.get('tabs', {}).get('rl', []):
+				for tab in data.get('tabs', {}):
 					addUrlToReadingList(tab['url'])
 			elif type == 'ict':
-				for tab in data.get('tabs', {}).get('ict', []):
+				for tab in data.get('tabs', {}):
 					addUrlToiCloudTabs(tab['url'])
 			else:
 				self.send_error(400, 'Missing or invalid type for put action')
