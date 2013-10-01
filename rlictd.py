@@ -20,6 +20,9 @@ import ssl
 import subprocess
 import json
 
+from readinglistlib import ReadingListReader
+from icloudtabslib import iCloudTabsReader
+
 # Allow connections only from the specific IP addresses given in this list.
 # Allow connections from any IP address if this list is empty.
 IP_WHITELIST = []
@@ -89,17 +92,26 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			
 			if type == 'rl':
 				# return reading list tabs in response
-				response['tabs'].append({'title': 'Reading List Link', 'url': 'http://example.com/'})
-				
+				rltabs = ReadingListReader()
+				for rltab in rltabs.read():
+					response['tabs'].append({'title': rltab['title'], 'url': rltab['url']})
+								
 			elif type == 'ict':
 				# return icloud tabs in response
-				response['tabs'].append({'title': 'iCloud Tabs Link', 'url': 'http://example.org/'})
+				ictabs = iCloudTabsReader()
+				for ictab in ictabs.tabs:
+					response['tabs'].append({'title': ictab['title'], 'url': ictab['url']})
 				
 			elif type == 'all':
 				# return reading list and icloud tabs in response
-				response['tabs'].append({'title': 'Reading List Link', 'url': 'http://example.com/'})
-				response['tabs'].append({'title': 'iCloud Tabs Link', 'url': 'http://example.org/'})
-							
+				# 
+				rltabs = ReadingListReader()
+				for rltab in rltabs.read():
+					response['tabs'].append({'title': rltab['title'], 'url': rltab['url']})
+				ictabs = iCloudTabsReader()
+				for ictab in ictabs.tabs:
+					response['tabs'].append({'title': ictab['title'], 'url': ictab['url']})
+
 			else:
 				self.send_error(400, 'Missing or invalid type for get action')
 				return
