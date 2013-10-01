@@ -12,7 +12,6 @@
 // A UNIXy (stdin/stdout URL read/write) command line utility to interact with
 // safarid should also be provided, as a tool/example for other workflows. 
 
-var widgets = require("sdk/widget");
 var tabs = require("sdk/tabs");
 var data = require("sdk/self").data;
 var urls = require("sdk/url");
@@ -20,37 +19,89 @@ var Request = require("sdk/request").Request;
 var base64 = require("sdk/base64");
 var prefs = require("sdk/simple-prefs").prefs;
 
-var widget = widgets.Widget({
-	id: "safarid-post",
-	label: "post tabs to safarid",
-	contentURL: data.url("bookbutton.ico"),
-	onClick: function() {
-		
-		// collect tab urls to post
-		var tablist = [];
-		for each (var tab in tabs) {
-			var taburl = urls.URL(tab.url);
-			if (taburl.scheme == "https" || taburl.scheme == "http") {
-				tablist.push({"Title": tab.title, "URL":tab.url});
-			}
-		}
-		
-		// send the tab list to server
-		// self-signed https certificate must be previously excepted
-		var tabstr = JSON.stringify(tablist);
-		var tabreq = Request({
-				url: prefs.SERVER_ADDRESS,
-				headers: {
-					"Authorization": "Basic " + base64.encode(prefs.AUTH_USERNAME + ":" + prefs.AUTH_PASSWORD),
-					"Content-type": "application/json"
-				},
-				content: tabstr,
-				onComplete: function(response) {
-					if (response.status !== 200) {
-						console.log("failed; check server");
-					}
-				}
-		});
-		tabreq.post();
-	}
+var rlictd_panel = require("sdk/panel").Panel({
+	width: 300,
+	height: 400,
+	contentURL: data.url('panel.html')/*,
+	contentScriptFile: data.url('panel.js')*/
 });
+
+require("sdk/widget").Widget({
+	id: "rlictd-panel",
+	label: "rlictd panel",
+	contentURL: data.url("bookbutton.ico"),
+	panel: rlictd_panel
+});
+
+rlictd_panel.on("show", function() {
+	//rlictd_panel.port.emit("show"); to notify page script it is being shown
+	// when panel is display, request current list of icloud tabs from rlictd
+	sendData({'action': 'get', 'type': 'ict'}, load_links_handler);
+});
+
+// handle response to get-ict request; expected to contain list of tabs
+function load_links_handler(response) {
+	if (response.status !== 200) {
+		console.log("loadlinks failed");
+		return;
+	}
+	
+	if (response.json === null) {
+		console.log("loadlinks 200, but null json");
+		return;
+	}
+	
+	// format as html list; insert in panel.html (using port to panel.js if need be)
+	var tabs = response.json['tabs'];
+	for each (link in tabs) {
+		console.log(link['url']);
+	}
+}
+
+rlictd_panel.port.on('send_current', function(type) {
+	var data = {
+		'action': 'put',
+		'type': type,
+		'tabs': [{
+			'title': tabs.activeTab.title,
+			'url': tabs.activeTab.url
+		}]
+	};
+	sendData(data, simple_response_handler);
+	rlictd_panel.hide();
+});
+
+rlictd_panel.port.on('send_all', function(type) {
+	var data = {
+		'action': 'put',
+		'type': type,
+		'tabs': []
+	};
+	for each (var tab in tabs) {
+		data['tabs'].push({
+			'title': tab.title,
+			'url': tab.url
+		});
+	}
+	sendData(data, simple_response_handler);
+	rlictd_panel.hide();
+});
+
+function simple_response_handler(response) {
+	if (response.status !== 200) {
+		console.log("sendData failed");
+	}
+}
+
+function sendData(data, handler) {
+	var req = Request({
+		url: prefs.SERVER_ADDRESS,
+		headers: {
+			"Authorization": "Basic " + base64.encode(prefs.AUTH_USERNAME + ":" + prefs.AUTH_PASSWORD),
+			"Content-type": "application/json"
+		},
+		content: JSON.stringify(data),
+		onComplete: handler
+	});
+	req.post();
+};
