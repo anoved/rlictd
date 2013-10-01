@@ -88,35 +88,20 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 		if action == 'get':
 			
-			response = {'tabs': []}
-			
-			if type == 'rl':
-				# return reading list tabs in response
-				rltabs = ReadingListReader()
-				for rltab in rltabs.read():
-					response['tabs'].append({'title': rltab['title'], 'url': rltab['url']})
-								
-			elif type == 'ict':
-				# return icloud tabs in response
-				ictabs = iCloudTabsReader()
-				for ictab in ictabs.tabs:
-					response['tabs'].append({'title': ictab['title'], 'url': ictab['url']})
-				
-			elif type == 'all':
-				# return reading list and icloud tabs in response
-				# 
-				rltabs = ReadingListReader()
-				for rltab in rltabs.read():
-					response['tabs'].append({'title': rltab['title'], 'url': rltab['url']})
-				ictabs = iCloudTabsReader()
-				for ictab in ictabs.tabs:
-					response['tabs'].append({'title': ictab['title'], 'url': ictab['url']})
-
-			else:
+			# get type must be specified as rl (Reading List), ict (iCloud Tabs), or all (both)
+			if (type != 'rl') and (type != 'ict') and (type != 'all'):
 				self.send_error(400, 'Missing or invalid type for get action')
 				return
 			
-			# manually construct response
+			response = {'tabs': []}
+			if type == 'rl':
+				response['tabs'].extend(getUrls(ReadingListReader().read()))
+			elif type == 'ict':
+				response['tabs'].extend(getUrls(iCloudTabsReader().tabs))			
+			elif type == 'all':
+				response['tabs'].extend(getUrls(ReadingListReader().read()))
+				response['tabs'].extend(getUrls(iCloudTabsReader().tabs))
+			
 			self.send_response(200)
 			self.send_header('Content-type', 'application/json')
 			self.end_headers()
@@ -137,6 +122,17 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		else:
 			self.send_error(400, 'Missing or invalid action')
 			return
+
+# relies on ReadingListReader().read() and iCloudTabsReader().tabs both
+# returning lists of dicts containing title and url properties. If these reader
+# module behaviors change, separate getUrls methods will be needed.
+# Since the title/url property names match, we could return tabs - but this
+# lets us filter out other unnecessary properties.
+def getUrls(tabs):
+	urls = []
+	for tab in tabs:
+		urls.append({'title': tab['title'], 'url': tab['url']})
+	return urls
 
 # refer url to collection identified by type, which determines referral command
 # returns command exit status: 0 on success, nonzero otherwise
