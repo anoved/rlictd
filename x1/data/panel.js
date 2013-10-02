@@ -4,8 +4,8 @@
 // available. Updates panel content with links to current remote tabs.
 addon.port.on("loadlinks", function(msg) {
 	
-	var ictdiv = document.getElementById('ictload');
-	var rldiv = document.getElementById('rlload');
+	var ictdiv = document.getElementById('ict');
+	var rldiv = document.getElementById('rl');
 	
 	// remove any previously-appended tab link lists
 	while (ictdiv.lastChild) {
@@ -15,10 +15,28 @@ addon.port.on("loadlinks", function(msg) {
 		rldiv.removeChild(rldiv.lastChild);
 	}
 	
-	// append lists of tab links for each remote collection
-	ictdiv.appendChild(makelinks(msg['tabs']['ict']));
-	rldiv.appendChild(makelinks(msg['tabs']['rl']));
+	makeIctLinks(ictdiv, msg['tabs']['ict']);
+	makeRlLinks(rldiv, msg['tabs']['rl']);
 });
+
+function makeIctLinks(ictd, tablists) {
+	var icth2 = document.createElement('h2');
+	icth2.appendChild(document.createTextNode('iCloud Tabs'));
+	ictd.appendChild(icth2);
+	for (var key in tablists) {
+		var dh3 = document.createElement('h3');
+		dh3.appendChild(document.createTextNode(key))
+		ictd.appendChild(dh3);		
+		ictd.appendChild(makelinks(tablists[key]));
+	}
+}
+
+function makeRlLinks(rld, tablist) {
+	var h2 = document.createElement('h2');
+	h2.appendChild(document.createTextNode('Reading List'));
+	rld.appendChild(h2);
+	rld.appendChild(makelinks(tablist));
+}
 
 // Return an element tree containing a list of tab links
 function makelinks(tablist) {
@@ -35,3 +53,4 @@ function makelinks(tablist) {
 	}
 	return dUl;
 }
+

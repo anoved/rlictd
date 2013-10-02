@@ -5,7 +5,6 @@
 	<script src="panel.js"></script>
 </head>
 <body>
-	<h1>rlictd</h1>
 	
 	<h2>Send</h2>
 	
@@ -18,12 +17,10 @@
 		<li><a href="#" onclick="addon.port.emit('send_all', 'rl');">All tabs to Reading List</a></li>
 		<li><a href="#" onclick="addon.port.emit('send_current', 'rl');">Current tab to Reading List</a></li>
 	</ul>
-	
-	<h2>Load</h2>
-	
-	<div id="ictload"></div>
-	
-	<div id="rlload"></div>
+
+	<div id="rl"></div>
+		
+	<div id="ict"></div>
 	
 </body>
 </html>

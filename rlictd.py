@@ -144,10 +144,11 @@ def getRlUrls(tabs):
 	return urls
 
 def getIctUrls(tabs):
-	urls = []
-	for tab in tabs:
-		urls.append({'title': tab['title'], 'url': tab['url'], 'device': tab['device']})
-	return urls
+	devices = list(set([tab['device'] for tab in tabs]))
+	results = {}
+	for device in devices:
+		results[device] = [{'title': tab['title'], 'url': tab['url']} for tab in tabs if tab['device'] == device]
+	return results
 
 # deliver url to collection identified by type, which determines command
 # returns command exit status: 0 on success, nonzero otherwise
