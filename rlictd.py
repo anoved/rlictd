@@ -38,19 +38,21 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			self.send_error(403, "Disallowed IP address")
 			return False
 		
-		# require authorization
-		if 'Authorization' not in self.headers:
-			self.send_error(401, "Authorization required")
-			return False
+		if (AUTH_USERNAME != '') and (AUTH_PASSWORD != ''):
+						
+			# require authorization
+			if 'Authorization' not in self.headers:
+				self.send_error(401, "Authorization required")
+				return False
 		
-		# get authorization values
-		authtoken = self.headers['Authorization'].split(' ', 1)[1]
-		username, password = base64.b64decode(authtoken).split(':', 1)
+			# get authorization values
+			authtoken = self.headers['Authorization'].split(' ', 1)[1]
+			username, password = base64.b64decode(authtoken).split(':', 1)
 		
-		# require correct authentication
-		if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
-			self.send_error(401, "Authorization failed")
-			return False
+			# require correct authentication
+			if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
+				self.send_error(401, "Authorization failed")
+				return False
 		
 		return True
 	
