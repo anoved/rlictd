@@ -1,19 +1,5 @@
 #!/usr/bin/python
 
-# This server script responds to queries from compatible browser extensions
-# (or, conceivably, other programs - possibly other instances of itself invoked
-# in an interactive way?). Supported queries take two general forms:
-#
-# 1. Requests for a list of Reading List URLs and/or iCloud Tabs URLs
-# 2. Requests to add included URLs to Reading List or iCloud Tabs
-#
-# iCloudTabsReader and/or ReadingListReader are used to support type 1 requests.
-# Type 2 requests are handled by opening the URLs with Safari (to add them to
-# iCloud Tabs, presuming the user's account is active) or using osascript to
-# add them to reading list using the appropriate AppleScript action.
-#
-# Authentication and connection whitelisting should certainly be applied.
-
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import base64
 import ssl
