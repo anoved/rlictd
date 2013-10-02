@@ -51,16 +51,7 @@ function load_links_handler(response) {
 		return;
 	}
 	
-	// format as html list; insert in panel.html (using port to panel.js if need be)
-	var tabs = response.json['tabs'];
-	console.log('iCloud Tabs:');
-	for each (link in tabs['ict']) {
-		console.log(link['url']);
-	}
-	console.log('Reading List:');
-	for each (link in tabs['rl']) {
-		console.log(link['url']);
-	}
+	rlictd_panel.port.emit("loadlinks", response.json);
 }
 
 rlictd_panel.port.on('send_current', function(type) {
@@ -110,3 +101,8 @@ function sendData(data, handler) {
 	});
 	req.post();
 };
+
+rlictd_panel.port.on('visit', function(url) {
+	rlictd_panel.hide();
+	tabs.open(url);
+});
