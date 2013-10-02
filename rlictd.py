@@ -68,21 +68,40 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 		return True
 	
+	#
+	# Respond to an HTTP GET request. Doesn't currently do anything besides
+	# confirm connection - useful for checking HTTPS and authentication setup.
+	#
 	def do_GET(self):
-		
 		if not self.authorized():
 			return
-		
-		self.send_response(200)
-
+		self.send_response(200, "OK")
+	
+	#
+	# Respond to an HTTP POST request (presumably a request from an rlictd
+	# client). Request content is read as JSON data; 'action' property must be
+	# 'get' or 'put', indicating whether this is a request for URLs from rlictd
+	# (get) or a delivery of URLs for rlictd (put). The 'type' property may be
+	# 'rl' (Reading List) or 'ict' (iCloud Tabs) to indicate which collection
+	# is the target of the action ('get' actions may specify 'all' as the type
+	# to request URLs from both collections at once). 'put' actions should be
+	# accompanied by a 'tabs' property containing a list of dicts, each
+	# containing [at least] a 'url' property. 'get' actions are sent a JSON
+	# response; the response contains a 'tabs' property containing a dict with
+	# two properties, 'ict' and 'rl', each of which is a list of dicts
+	# containing 'title' and 'url' properties. (Only the requested tab type list
+	# is populated in the response.)
+	#
 	def do_POST(self):
 		
 		if not self.authorized():
 			return
-			
+		
+		# read the request and parse it as JSON
 		content_length = int(self.headers['content-length'])
 		data = json.loads(self.rfile.read(content_length))
 		
+		# get the required parameters
 		action = data.get('action', '')
 		type = data.get('type', '')
 		
@@ -93,6 +112,7 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 				self.send_error(400, 'Missing or invalid type for get action')
 				return
 			
+			# construct the JSON response containing tabs of requested type
 			response = {'tabs': {'ict': [], 'rl': []}}
 			if type == 'rl':
 				response['tabs']['rl'] = getUrls(ReadingListReader().read())
@@ -102,6 +122,7 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 				response['tabs']['rl'] = getUrls(ReadingListReader().read())
 				response['tabs']['ict'] = getUrls(iCloudTabsReader().tabs)
 			
+			# send the response back to the client
 			self.send_response(200)
 			self.send_header('Content-type', 'application/json')
 			self.end_headers()
@@ -114,9 +135,11 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 				self.send_error(400, 'Missing or invalid type for put action')
 				return
 			
+			# deliver tabs received from client to the indicated collection
 			for tab in data.get('tabs', {}):
 				putUrl(tab['url'], type)
-
+			
+			# simply confirm completion
 			self.send_response(200)
 			
 		else:
@@ -134,7 +157,7 @@ def getUrls(tabs):
 		urls.append({'title': tab['title'], 'url': tab['url']})
 	return urls
 
-# refer url to collection identified by type, which determines referral command
+# deliver url to collection identified by type, which determines command
 # returns command exit status: 0 on success, nonzero otherwise
 def putUrl(url, type):
 	if type == 'rl':
@@ -144,7 +167,8 @@ def putUrl(url, type):
 	else:
 		return 1
 	return subprocess.call(cmd)
- 
+
+# Start HTTP server using class above to handle requests; encrypt connections
 server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
 server.socket = ssl.wrap_socket(server.socket, certfile='server.pem', server_side=True, ssl_version=ssl.PROTOCOL_TLSv1)
 
