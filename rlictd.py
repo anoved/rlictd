@@ -101,11 +101,11 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			# construct the JSON response containing tabs of requested type
 			response = {'tabs': {'ict': [], 'rl': []}}
 			if type == 'rl':
-				response['tabs']['rl'] = getRlUrls(ReadingListReader().read())
+				response['tabs']['rl'] = getRlUrls(ReadingListReader().read(ascending=False))
 			elif type == 'ict':
 				response['tabs']['ict'] = getIctUrls(iCloudTabsReader().tabs)
 			elif type == 'all':
-				response['tabs']['rl'] = getRlUrls(ReadingListReader().read())
+				response['tabs']['rl'] = getRlUrls(ReadingListReader().read(ascending=False))
 				response['tabs']['ict'] = getIctUrls(iCloudTabsReader().tabs)
 			
 			# send the response back to the client
