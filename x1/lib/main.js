@@ -36,7 +36,9 @@ require("sdk/widget").Widget({
 
 // Panel display handler - invoked by FF every time panel is displayed
 rlictd_panel.on("show", function() {
-	//rlictd_panel.port.emit("show"); to notify page content it is being shown
+	
+	// notify page content it is being shown
+	rlictd_panel.port.emit('show');
 	
 	// request current tabs from rlictd
 	sendData({'action': 'get', 'type': 'all'}, load_links_handler);

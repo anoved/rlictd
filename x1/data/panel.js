@@ -1,5 +1,13 @@
 // Interaction with the panel HTML is performed by this content script.
 
+// Invoked by addon immediately when panel is displayed.
+addon.port.on('show', function() {
+	// Insert 'put' links appropriate to current local tabs
+	// For instance:
+	// - Only show "send current tab" links if the current tab exists and has a real URL
+	// - Only show all "send all tabs" if there are tabs besides the current tab
+});
+
 // Invoked by addon after panel is displayed, once current remote tab data is
 // available. Updates panel content with links to current remote tabs.
 addon.port.on("loadlinks", function(msg) {
