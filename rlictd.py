@@ -101,12 +101,12 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			# construct the JSON response containing tabs of requested type
 			response = {'tabs': {'ict': [], 'rl': []}}
 			if type == 'rl':
-				response['tabs']['rl'] = getUrls(ReadingListReader().read())
+				response['tabs']['rl'] = getRlUrls(ReadingListReader().read())
 			elif type == 'ict':
-				response['tabs']['ict'] = getUrls(iCloudTabsReader().tabs)
+				response['tabs']['ict'] = getIctUrls(iCloudTabsReader().tabs)
 			elif type == 'all':
-				response['tabs']['rl'] = getUrls(ReadingListReader().read())
-				response['tabs']['ict'] = getUrls(iCloudTabsReader().tabs)
+				response['tabs']['rl'] = getRlUrls(ReadingListReader().read())
+				response['tabs']['ict'] = getIctUrls(iCloudTabsReader().tabs)
 			
 			# send the response back to the client
 			self.send_response(200)
@@ -137,10 +137,16 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 # module behaviors change, separate getUrls methods will be needed.
 # Since the title/url property names match, we could return tabs - but this
 # lets us filter out other unnecessary properties.
-def getUrls(tabs):
+def getRlUrls(tabs):
 	urls = []
 	for tab in tabs:
 		urls.append({'title': tab['title'], 'url': tab['url']})
+	return urls
+
+def getIctUrls(tabs):
+	urls = []
+	for tab in tabs:
+		urls.append({'title': tab['title'], 'url': tab['url'], 'device': tab['device']})
 	return urls
 
 # deliver url to collection identified by type, which determines command
