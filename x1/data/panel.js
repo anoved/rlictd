@@ -20,9 +20,8 @@ addon.port.on("loadlinks", function(msg) {
 });
 
 function makeIctLinks(ictd, tablists) {
-	var icth2 = document.createElement('h2');
-	icth2.appendChild(document.createTextNode('iCloud Tabs'));
-	ictd.appendChild(icth2);
+	ictd.innerHTML = '<h2>iCloud Tabs</h2>';
+	ictd.innerHTML += '<p><a href="#" onclick="addon.port.emit(\'send_current\', \'ict\');">Add current tab</a> or <a href="#" onclick="addon.port.emit(\'send_all\', \'ict\');">add all tabs</a>.</p>';
 	for (var key in tablists) {
 		var dh3 = document.createElement('h3');
 		dh3.appendChild(document.createTextNode(key))
@@ -32,9 +31,8 @@ function makeIctLinks(ictd, tablists) {
 }
 
 function makeRlLinks(rld, tablist) {
-	var h2 = document.createElement('h2');
-	h2.appendChild(document.createTextNode('Reading List'));
-	rld.appendChild(h2);
+	rld.innerHTML = '<h2>Reading List</h2>';
+	rld.innerHTML += '<p><a href="#" onclick="addon.port.emit(\'send_current\', \'rl\');">Add current tab</a> or <a href="#" onclick="addon.port.emit(\'send_all\', \'rl\');">add all tabs</a>.</p>';
 	rld.appendChild(makelinks(tablist));
 }
 

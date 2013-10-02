@@ -113,6 +113,5 @@ function sendData(data, handler) {
 
 // invoked when the panel content script wants to open a tab in local browser
 rlictd_panel.port.on('visit', function(url) {
-	rlictd_panel.hide();
 	tabs.open(url);
 });
