@@ -10,7 +10,7 @@ addon.port.on('show', function() {
 
 // Invoked by addon after panel is displayed, once current remote tab data is
 // available. Updates panel content with links to current remote tabs.
-addon.port.on("loadlinks", function(msg) {
+addon.port.on("loadlinks", function(response) {
 	
 	var ictdiv = document.getElementById('ict');
 	var rldiv = document.getElementById('rl');
@@ -23,11 +23,11 @@ addon.port.on("loadlinks", function(msg) {
 		rldiv.removeChild(rldiv.lastChild);
 	}
 	
-	makeIctLinks(ictdiv, msg['tabs']['ict']);
-	makeRlLinks(rldiv, msg['tabs']['rl']);
+	insertLinksICT(ictdiv, response['ict']);
+	insertLinksRL(rldiv, response['rl']);
 });
 
-function makeIctLinks(ictd, tablists) {
+function insertLinksICT(ictd, tablists) {
 	ictd.innerHTML = '<h2>iCloud Tabs</h2>';
 	ictd.innerHTML += '<p><a href="#" onclick="addon.port.emit(\'send_current\', \'ict\');">Add current tab</a> or <a href="#" onclick="addon.port.emit(\'send_all\', \'ict\');">add all tabs</a>.</p>';
 	for (var key in tablists) {
@@ -38,7 +38,7 @@ function makeIctLinks(ictd, tablists) {
 	}
 }
 
-function makeRlLinks(rld, tablist) {
+function insertLinksRL(rld, tablist) {
 	rld.innerHTML = '<h2>Reading List</h2>';
 	rld.innerHTML += '<p><a href="#" onclick="addon.port.emit(\'send_current\', \'rl\');">Add current tab</a> or <a href="#" onclick="addon.port.emit(\'send_all\', \'rl\');">add all tabs</a>.</p>';
 	rld.appendChild(makelinks(tablist));

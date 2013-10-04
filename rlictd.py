@@ -101,14 +101,14 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 				return
 			
 			# construct the JSON response containing tabs of requested type
-			response = {'tabs': {'ict': [], 'rl': []}}
+			response = {'ict': [], 'rl': []}
 			if type == 'rl':
-				response['tabs']['rl'] = getRlUrls(ReadingListReader().read(ascending=False))
-			elif type == 'ict':
-				response['tabs']['ict'] = getIctUrls(iCloudTabsReader().tabs)
-			elif type == 'all':
-				response['tabs']['rl'] = getRlUrls(ReadingListReader().read(ascending=False))
-				response['tabs']['ict'] = getIctUrls(iCloudTabsReader().tabs)
+				response['rl'] = formatResponseRL(ReadingListReader().read(ascending=False))
+			elif type == 'ict': 
+				response['ict'] = formatResponseICT(iCloudTabsReader().tabs)
+			elif type == 'all': 
+				response['rl'] = formatResponseRL(ReadingListReader().read(ascending=False))
+				response['ict'] = formatResponseICT(iCloudTabsReader().tabs)
 			
 			# send the response back to the client
 			self.send_response(200)
@@ -134,18 +134,18 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			self.send_error(400, 'Missing or invalid action')
 			return
 
-# relies on ReadingListReader().read() and iCloudTabsReader().tabs both
-# returning lists of dicts containing title and url properties. If these reader
-# module behaviors change, separate getUrls methods will be needed.
-# Since the title/url property names match, we could return tabs - but this
-# lets us filter out other unnecessary properties.
-def getRlUrls(tabs):
+# 'tabs' is list of Reading List item dicts as returned by ReadingListReader
+# returns list formatted as expected by rlictd clients (currently the same)
+def formatResponseRL(tabs):
 	urls = []
 	for tab in tabs:
 		urls.append({'title': tab['title'], 'url': tab['url']})
 	return urls
 
-def getIctUrls(tabs):
+# 'tabs' is list of iCloud Tabs dicts as returned by iCloudTabsReader
+# returns dict with iCloud device names as keys. dict values are lists of dicts
+# representing the tabs open on each device.
+def formatResponseICT(tabs):
 	devices = list(set([tab['device'] for tab in tabs]))
 	results = {}
 	for device in devices:
