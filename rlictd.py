@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
+from ConfigParser import SafeConfigParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urlparse import urlparse
 from base64 import b64decode
 from subprocess import call
+import os
 import ssl
 import json
 import socket
@@ -11,16 +13,22 @@ import socket
 from readinglistlib import ReadingListReader
 from icloudtabslib import iCloudTabsReader
 
-# Allow connections only from the specific IP addresses given in this list.
-# Allow connections from any IP address if this list is empty.
-IP_WHITELIST = []
-
-# Credentials for basic HTTP authentication
-AUTH_USERNAME = "foo"
-AUTH_PASSWORD = "bar"
-
-# Server address configuration
-SERVER_PORT = 8081
+class rlictdConfig():
+	def __init__(self, path=''):
+		
+		# search for config file first at the path passed to this constructor
+		# (if any), then in current directory, and lastly in user's home dir.
+		files = ['rlictd.cfg', os.path.expanduser('~/.rlictd.cfg')]
+		if path != '':
+			files.insert(0, path)
+			
+		cp = SafeConfigParser()
+		cp.read(files)
+		
+		self.ips = cp.get('rlictd', 'IP_WHITELIST').split()
+		self.username = cp.get('rlictd', 'AUTH_USERNAME')
+		self.password = cp.get('rlictd', 'AUTH_PASSWORD')
+		self.port = cp.getint('rlictd', 'SERVER_PORT')
 
 class rlictdRequestHandler(BaseHTTPRequestHandler):
 
@@ -35,11 +43,11 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 	def authorized(self):
 
 		# restrict access to clients in the IP whitelist
-		if len(IP_WHITELIST) > 0 and self.client_address[0] not in IP_WHITELIST:
+		if len(config.ips) > 0 and self.client_address[0] not in config.ips:
 			self.send_error(403, "Disallowed IP address")
 			return False
 		
-		if (AUTH_USERNAME != '') and (AUTH_PASSWORD != ''):
+		if (config.username != '') and (config.password != ''):
 						
 			# require authorization
 			if 'Authorization' not in self.headers:
@@ -51,7 +59,7 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 			username, password = b64decode(authtoken).split(':', 1)
 		
 			# require correct authentication
-			if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
+			if (username != config.username) or (password != config.password):
 				self.send_error(401, "Authorization failed")
 				return False
 		
@@ -170,11 +178,14 @@ def putUrl(rawUrl, type):
 		return 1
 	return call(cmd)
 
+
+config = rlictdConfig()
+
 # Start HTTP server using class above to handle requests; encrypt connections
 address = socket.gethostbyname(socket.gethostname())
-server = HTTPServer((address, SERVER_PORT), rlictdRequestHandler)
+server = HTTPServer((address, config.port), rlictdRequestHandler)
 server.socket = ssl.wrap_socket(server.socket, certfile='server.pem', server_side=True, ssl_version=ssl.PROTOCOL_TLSv1)
-print "listening on %s:%s" % (address, SERVER_PORT)
+print "listening on %s:%s" % (address, config.port)
 
 try:
 	server.serve_forever()
