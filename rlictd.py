@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from urlparse import urlparse
 import base64
 import ssl
 import subprocess
@@ -153,8 +154,14 @@ def formatResponseICT(tabs):
 	return results
 
 # deliver url to collection identified by type, which determines command
-# returns command exit status: 0 on success, nonzero otherwise
-def putUrl(url, type):
+# returns command exit status: 0 on success, nonzero otherwise (should log details)
+def putUrl(rawUrl, type):
+	
+	parts = urlparse(rawUrl);
+	if ((parts.scheme != 'http') and (parts.scheme != 'https')) or (parts.netloc == ''):
+		return 1
+	url = parts.geturl()
+	
 	if type == 'rl':
 		cmd = ['/usr/bin/osascript', '-e', 'tell application "Safari" to add reading list item "%s"' % url]
 	elif type == 'ict':
