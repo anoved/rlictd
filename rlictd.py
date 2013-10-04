@@ -2,9 +2,9 @@
 
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urlparse import urlparse
-import base64
+from base64 import b64decode
+from subprocess import call
 import ssl
-import subprocess
 import json
 
 from readinglistlib import ReadingListReader
@@ -48,7 +48,7 @@ class rlictdRequestHandler(BaseHTTPRequestHandler):
 		
 			# get authorization values
 			authtoken = self.headers['Authorization'].split(' ', 1)[1]
-			username, password = base64.b64decode(authtoken).split(':', 1)
+			username, password = b64decode(authtoken).split(':', 1)
 		
 			# require correct authentication
 			if (username != AUTH_USERNAME) or (password != AUTH_PASSWORD):
@@ -168,7 +168,7 @@ def putUrl(rawUrl, type):
 		cmd = ['/usr/bin/open', '-a', 'Safari', '-g', url]
 	else:
 		return 1
-	return subprocess.call(cmd)
+	return call(cmd)
 
 # Start HTTP server using class above to handle requests; encrypt connections
 server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
