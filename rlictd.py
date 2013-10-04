@@ -6,6 +6,7 @@ from base64 import b64decode
 from subprocess import call
 import ssl
 import json
+import socket
 
 from readinglistlib import ReadingListReader
 from icloudtabslib import iCloudTabsReader
@@ -19,7 +20,6 @@ AUTH_USERNAME = "foo"
 AUTH_PASSWORD = "bar"
 
 # Server address configuration
-SERVER_NAME = "192.168.1.5"
 SERVER_PORT = 8081
 
 class rlictdRequestHandler(BaseHTTPRequestHandler):
@@ -171,8 +171,10 @@ def putUrl(rawUrl, type):
 	return call(cmd)
 
 # Start HTTP server using class above to handle requests; encrypt connections
-server = HTTPServer((SERVER_NAME, SERVER_PORT), rlictdRequestHandler)
+address = socket.gethostbyname(socket.gethostname())
+server = HTTPServer((address, SERVER_PORT), rlictdRequestHandler)
 server.socket = ssl.wrap_socket(server.socket, certfile='server.pem', server_side=True, ssl_version=ssl.PROTOCOL_TLSv1)
+print "listening on %s:%s" % (address, SERVER_PORT)
 
 try:
 	server.serve_forever()
